@@ -297,11 +297,9 @@ def main():
     parser.add_argument('--net', type = str, default = 'deeplab',
                         choices = ['deeplabv3p', 'wdeeplabv3p', 'wsegnet', 'segnet', 'unet'])
     parser.add_argument('--p_dropout', type=str, default='0.5, 0.1',
-                        help='use which gpu to train, must be a \
-                        comma-separated list of floats only')
+                        help='drop out rate see pytorch docs for more information')
     parser.add_argument('--parameter_per', type=str, default='0.5, 0.75',
-                        help='use which gpu to train, must be a \
-                        comma-separated list of floats only')
+                        help=' ')
     parser.add_argument('--wn', type = str, default = 'none',
                         choices = ['none', 'haar', 'bior2.2', 'bior3.3', 'bior4.4', 'bior5.5', 'db2'])
     parser.add_argument('--backbone', type=str, default='resnet101',
@@ -376,7 +374,7 @@ def main():
     parser.add_argument('--no_val', action='store_true', default=False,
                         help='skip validation during training')
 
-    args = parser.parse_args()  #在执行这条命令之前，所有命令行参数都给不会生效
+    args = parser.parse_args()  #All command line parameters will not take effect until this command is executed
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     if args.cuda:
         try:

@@ -1,5 +1,5 @@
 """
-这个脚本对构建的网络结构进行可视化，这个脚本是从网上获得
+This script visualizes the structure of the constructed network, which was obtained from the web
 """
 
 from graphviz import Digraph

@@ -90,7 +90,7 @@ class MscEval(object):
             self.name_classes = dataset.class_names
             self.dataloader =  DataLoader(dataset, batch_size = self.args.test_batch_size, shuffle = False)
         else:
-            raise NotImplementedError('不适用于其他数据集')
+            raise NotImplementedError('Not applicable to other data sets')
 
     def get_net(self):
         self.args.p_dropout = tuple(float(s) for s in self.args.p_dropout.split(','))
@@ -105,7 +105,7 @@ class MscEval(object):
             self.net = WDeepLabV3P(num_classes = self.n_classes, backbone = self.args.backbone, output_stride = self.args.out_stride, wavename = self.args.wn,
                                     sync_bn = None, freeze_bn = False, p_dropout = self.args.p_dropout)
         else:
-            raise NotImplementedError('当前指定网络没有实现')
+            raise NotImplementedError('The current specified network is not implemented')
         self.load_pre_mode()
         self.net = torch.nn.DataParallel(self.net.cuda(), device_ids = self.gpus, output_device = self.out_gpu)
 

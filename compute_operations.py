@@ -55,9 +55,9 @@ def measure_layer(layer, x, multi_add=1):
 def is_leaf(module):
     return sum(1 for x in module.children()) == 0
 
-# 判断是否为需要计算flops的结点模块
+# Determine if the module is a node that needs to calculate flops
 def should_measure(module):
-    # 代码中的残差结构可能定义了空内容的Sequential
+    # The residual structure in the code may define a Sequential with empty content
     if str(module).startswith('Sequential'):
         return False
     if is_leaf(module):
@@ -68,7 +68,7 @@ def measure_model(model, shape=(1,3,224,224)):
     global count_ops
     data = torch.zeros(shape)
 
-    # 将计算flops的操作集成到forward函数
+    # Integrate the operation of calculating flops into the forward function
     def new_forward(m):
         def lambda_forward(x):
             measure_layer(m, x)
@@ -78,8 +78,8 @@ def measure_model(model, shape=(1,3,224,224)):
     def modify_forward(model):
         for child in model.children():
             if should_measure(child):
-                # 新增一个old_forward属性保存默认的forward函数
-                # 便于计算flops结束后forward函数的恢复
+                # Add an old_forward property to save the default forward function
+                # Facilitate the recovery of the forward function after the flops are calculated
                 child.old_forward = child.forward
                 child.forward = new_forward(child)
             else:
@@ -87,7 +87,7 @@ def measure_model(model, shape=(1,3,224,224)):
 
     def restore_forward(model):
         for child in model.children():
-            # 对修改后的forward函数进行恢复
+            # Recovery of the modified forward function
             if is_leaf(child) and hasattr(child, 'old_forward'):
                 child.forward = child.old_forward
                 child.old_forward = None
@@ -95,13 +95,14 @@ def measure_model(model, shape=(1,3,224,224)):
                 restore_forward(child)
 
     modify_forward(model)
-    # forward过程中对全局的变量count_ops进行更新
+    # The global variable count_ops is updated during forward
     model.forward(data)
     restore_forward(model)
 
     return count_ops
 
-
+# IMPORTANT This file is for measuring FLOP performance of the specific models
+# Not needed for qualitative results
 from SegNet_UNet.U_Net import unet_vgg16
 from SegNet_UNet.SegNet import segnet_vgg16
 if __name__ == '__main__':

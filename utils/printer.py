@@ -1,5 +1,7 @@
 """
-这个脚本保存一个打印器，将某些日志信息输出到屏幕的同时将其保存到某个文件中，同时保存生成这条日志信息的时间
+This script keeps a printer that saves certain log messages 
+to a file while outputting them to the screen, and saves the time 
+when the log message was generated
 """
 
 import os
@@ -8,7 +10,7 @@ from datetime import datetime
 
 class Printer():
     """
-    描述一个将字符串同时输出到终端并保存到文件里的类型
+    Describes a type that simultaneously outputs a string to the terminal and saves it to a file
     """
     def __init__(self, file):
         self.file = file
@@ -31,8 +33,8 @@ class Printer():
 
     def pprint(self, text):
         """
-        将字符串输出到屏幕或终端，同时将其作为一行写到文件中
-        :param text: 将要输出的字符串
+        Output the string to the screen or terminal while writing it as a line to a file
+        :param text: The string to be output
         :return:
         """
         time = '[{}]'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + ' ' * 4

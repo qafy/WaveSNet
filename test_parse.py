@@ -76,7 +76,7 @@ def main():
     parser.add_argument('--no_val', action='store_true', default=False,
                         help='skip validation during training')
 
-    args = parser.parse_args()  #在执行这条命令之前，所有命令行参数都给不会生效
+    args = parser.parse_args()  #All command line parameters will not take effect until this command is executed
     for key, value in args.__dict__.items():
         if not key.startswith('_'):
             print('{} ==> {}'.format(key.rjust(24), value))
