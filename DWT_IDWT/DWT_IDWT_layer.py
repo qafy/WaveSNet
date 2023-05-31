@@ -4,9 +4,9 @@
 # 4.0 International Public License. To view a copy of this license, visit
 # https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.
 """
-自定义pytorch层，实现一维、二维、三维张量的DWT和IDWT，未考虑边界延拓
-只有当图像行列数都是偶数，且重构滤波器组低频分量长度为2时，才能精确重构，否则在边界处有误差。
-与论文中公式有一处差异，主要是在二维情况下：论文中是LH = HXL，程序中实现是 LH = LXH
+Custom pytorch layer to implement DWT and IDWT for 1D, 2D and 3D tensor without considering boundary extensions
+Exact reconstruction is possible only when the image ranks are all even and the length of the low frequency component of the reconstruction filter set is 2, otherwise there is an error at the boundary.
+There is one difference with the formula in the paper, mainly in the two-dimensional case: LH = HXL in the paper, and LH = LXH in the program.
 """
 import numpy as np
 #import cv2
@@ -23,8 +23,8 @@ class DWT_1D(Module):
     """
     def __init__(self, wavename):
         """
-        :param band_low: 小波分解所用低频滤波器组
-        :param band_high: 小波分解所用高频滤波器组
+        :param band_low: low frequency filter set for wavelet decomposition
+        :param band_high: the high frequency filter set used for wavelet decomposition
         """
         super(DWT_1D, self).__init__()
         wavelet = pywt.Wavelet(wavename)
@@ -37,7 +37,7 @@ class DWT_1D(Module):
 
     def get_matrix(self):
         """
-        生成变换矩阵
+        Generate transformation matrix
         :return:
         """
         L1 = self.input_height
@@ -80,8 +80,8 @@ class IDWT_1D(Module):
     """
     def __init__(self, wavename):
         """
-        :param band_low: 小波重建所需低频滤波器组
-        :param band_high: 小波重建所需高频滤波器组
+        :param band_low: Low frequency filter banks required for wavelet reconstruction
+        :param band_high: High frequency filter banks required for wavelet reconstruction
         """
         super(IDWT_1D, self).__init__()
         wavelet = pywt.Wavelet(wavename)
@@ -96,7 +96,7 @@ class IDWT_1D(Module):
 
     def get_matrix(self):
         """
-        生成变换矩阵
+        Generate transformation matrix
         :return:
         """
         L1 = self.input_height
@@ -141,8 +141,8 @@ class DWT_2D(Module):
     """
     def __init__(self, wavename):
         """
-        :param band_low: 小波分解所用低频滤波器组
-        :param band_high: 小波分解所用高频滤波器组
+        :param band_low: Low-frequency filter banks used for wavelet decomposition
+        :param band_high: High-frequency filter banks used for wavelet decomposition
         """
         super(DWT_2D, self).__init__()
         wavelet = pywt.Wavelet(wavename)
@@ -155,7 +155,7 @@ class DWT_2D(Module):
 
     def get_matrix(self):
         """
-        生成变换矩阵
+        Generate transformation matrix
         :return:
         """
         L1 = np.max((self.input_height, self.input_width))

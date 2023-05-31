@@ -1,10 +1,10 @@
 """
-借助于已有的卷积操作实现 DWT 和 IDWT，它们的滤波器组可以是可训练参数，初始化这些滤波器组时候使用某个给定的小波
-各个层中参数 trainable 默认设置为 False，表示不对滤波器组进行训练更新；更改为 True 则表示对滤波器组进行更新。
-输入数据某个维度上的尺寸小于 kernel_size，会报错
-在信号边界处无法精确重构
-这些层暂时只支持2进制的标量小波。其他小波或超小波，如a进制小波、多小波、小波框架、曲波、脊波、条带波、小波框架等暂不适用
-目前三维数据的边界延拓没有 'reflect'，因此即便使用 haar 小波也无法精确重建
+DWT and IDWT are implemented with existing convolution operations, their filter banks can be trainable parameters and initialize these filter banks with a given wavelet
+The parameter trainable is set to False by default in each layer, which means that the filter bank is not updated by training; changing it to True means that the filter bank is updated.
+If the dimension of the input data is smaller than kernel_size, an error is reported
+Exact reconstruction at signal boundaries is not possible
+These layers only support binary scalar wavelets for now. Other wavelets or superwavelets, such as a-binary wavelet, multiwavelet, wavelet frame, curved wavelet, ridge wavelet, strip wavelet, wavelet frame, etc. are not available at this time.
+Currently, the boundary extension of 3D data does not have 'reflect', so even if we use haar wavelets, we cannot reconstruct accurately.
 """
 
 import pywt
@@ -21,46 +21,46 @@ class DWT_1D(nn.Module):
                  stride = 2, in_channels = 1, out_channels = None, groups = None,
                  kernel_size = None, trainable = False):
         """
-        :param pad_type: 对输入数据的边界延拓方式，理论上使用对称小波如 bior2.2\bior3.3 等，同时对数据进行对称延拓，可以精确重构原数据，
-                         但是脚本的实现有点问题，除非使用 haar 小波，否则无法精确重构，可能是由于 python 包 pywt 中的小波滤波器组的排列方式引起的
-        :param wavename: 对滤波器初始化使用的小波，暂时只支持 2 进制的标量小波。
-                         其他小波或超小波，如 a 进制小波、多小波、小波框架、曲波、脊波、条带波、小波框架等暂不适用；
-                         对于 2D/3D 数据，相应的滤波器是由 1D 滤波器组进行张量相乘得到的，对应的小波称为张量小波或可分离小波，若要使用不可分离小波，则要重建脚本
-        :param stride: 采样步长，脚本设置这个值必须为2，非要设置为其他数值也是可以运行的（此时需屏蔽脚本中的 assert self.stride == 2），但是不满足小波理论；
-                        若是用任意进制的小波，如3进制小波，可相应调整这个参数，但此时有更多的滤波器组，会相应分解出更多高频分量，对应的还要更新脚本内容
-        :param in_channels: 输入数据的通道数
-        :param out_channels: 输出数据的通道数，默认与输入数据通道数相同
-        :param groups: 对通道这一维度的分组数目，这个值需要能被 in_channels 整除，
-                        默认值与输入数据的通道数相同，即为 in_channels；一般的卷积操作这里默认值为 1
-        :param kernel_size: 卷积核尺寸，这个参数与参数 wavename 有一定的冲突，即该参数值必须大于初始化小波滤波器长度；
-                            该参数的默认值是等于初始化所用小波滤波器长度
-                            若训练过程中不对滤波器组进行学习更新，即参数 trainable 设置为 False，则建议参数 kernel_size 选用默认值，因为此时除了运算量的提升，并不能带来任何增益
-                            若参数 trainable 设置为 True，参数 kernel_size 应大于等于初始化所用小波的滤波器长度，此时有可能训练得到更适用于当前数据分布的滤波器组
-                            个人不建议 kernel_size 的值设置的比初始化小波滤波器长度大的很多，个人建议这个超出值不要大于 3
-        :param trainable: 标记是否在训练过程中更新滤波器组参数；
-                          若这个参数设置为 True，且同时 groups 设置为 1 ，那么：
-                                DWT层等价于多个 stride = 2 的卷积层，只是对卷积核的大小以及初始化方式不同
-                                IDWT层等价于多个 stride = 2 的反卷积层操作后相加，同样卷积核的大小以及初始化方式不同
+        :param pad_type: the boundary extension of the input data, theoretically using symmetric wavelets such as bior2.2\bior3.3, while applying symmetric extensions to the data, can accurately reconstruct the original data.
+                         However, the implementation of the script is a bit problematic. Unless haar wavelets are used, the exact reconstruction is not possible, probably due to the arrangement of the wavelet filter sets in the python package pywt
+        :param wavename: The wavelet used to initialize the filter, which for now only supports binary scalar wavelets.
+                         Other wavelets or superwavelets, such as a-wavelets, multiwavelets, wavelet frames, curved waves, ridges, strip waves, wavelet frames, etc., are not supported at this time;
+                         For 2D/3D data, the corresponding filters are obtained by tensor multiplication of 1D filter banks, and the corresponding wavelets are called tensor wavelets or separable wavelets; to use non-separable wavelets, the reconstruction script
+        :param stride: the sampling step, the script must set this value to 2, it is possible to run if it is not set to other values (at this point it is necessary to mask the assert self.stride == 2 in the script), but it does not satisfy wavelet theory;
+                        If you are using wavelets of arbitrary binary, such as wavelets of 3 binary, you can adjust this parameter accordingly, but at this time there are more filter sets, which will decompose more high-frequency components accordingly, and the corresponding script content should be updated
+        :param in_channels: the number of channels of input data
+        :param out_channels: the number of channels of the output data, the default is the same as the number of channels of the input data
+        :param groups: the number of groups for the channel dimension, this value needs to be divisible by in_channels.
+                        The default value is the same as the number of channels of the input data, i.e. in_channels; the default value here is 1 for general convolution operations
+        :param kernel_size: the size of the convolution kernel, this parameter has some conflict with the parameter wavename, that is, the value of this parameter must be greater than the initialized wavelet filter length;
+                            The default value of this parameter is equal to the wavelet filter length used for initialization
+                            If the filter bank is not updated during training, i.e., the parameter trainable is set to False, it is recommended that the default value of kernel_size be used, because it does not bring any gain except for the increase in the number of operations.
+                            If the parameter trainable is set to True, the parameter kernel_size should be greater than or equal to the filter length of the wavelet used for initialization, so that it is possible to train a filter set that is more suitable for the current data distribution.
+                            Personally, I don't recommend setting the kernel_size value much larger than the initialized wavelet filter length, I recommend that this value should not exceed 3
+        :param trainable: marks whether the filter set parameters are updated during training;
+                          If this parameter is set to True and groups is also set to 1, then:
+                                DWT layer is equivalent to multiple stride = 2 convolutional layers, but the size of the convolutional kernel and the initialization method are different.
+                                The IDWT layer is equivalent to the sum of multiple stride = 2 deconvolution layers, but the size of the convolution kernel and the initialization method are also different.
 
-                当 out_channels 和 groups 都采用默认值时，对应的是对输入数据逐通道进行小波变换
-                当 groups 取值为 1 时候，与一般的卷积操作有相似，可理解为融合数据在不同通道的相同频段内的信息
-                与一般的卷积层一样，理论上这些层可以处理任意尺寸的数据。
-                但是，如果输入数据某个维度上尺寸小于滤波器组长度的1/2，在重构过程中对数据延拓时会报错
-                另外，我们建议输入数据各个维度上的尺寸是偶数值。
+                When the default values of out_channels and groups are used, the wavelet transform is applied to the input data channel by channel.
+                When groups is set to 1, it is similar to the general convolution operation, which can be interpreted as fusing the information in the same frequency band of different channels of the data.
+                As with the general convolutional layers, these layers can theoretically handle data of arbitrary size.
+                However, if the dimension of the input data is smaller than 1/2 the length of the filter set, an error will be reported when the data is extended during reconstruction.
+                In addition, we recommend that the dimensions of the input data be of even values in each dimension.
 
-                其他各层需要说明的事项与此基本相同，不再说明。
+                Other layers need to be explained in the same way, so we will not explain them again.
         """
         super(DWT_1D, self).__init__()
         self.trainable = trainable
         self.kernel_size = kernel_size
         if not self.trainable:
-            assert self.kernel_size == None, '若训练过程中不更新滤波器组，请将 kernel_size 设置为默认值 None'
+            assert self.kernel_size == None, 'If the filter bank is not updated during training, set kernel_size to the default value None'
         self.in_channels = in_channels
         self.out_channels = self.in_channels if out_channels == None else out_channels
         self.groups = self.in_channels if groups == None else groups
-        assert isinstance(self.groups, int) and self.in_channels % self.groups == 0, '参数 groups 的应能被 in_channels 整除'
+        assert isinstance(self.groups, int) and self.in_channels % self.groups == 0, 'The parameter groups should be divisible by in_channels'
         self.stride = stride
-        assert self.stride == 2, '目前版本，stride 只能等于 2'
+        assert self.stride == 2, 'In the current version, stride can only equal 2'
         self.wavename = wavename
         self.pad_type = pad_type
         assert self.pad_type in Pad_Mode
@@ -73,7 +73,7 @@ class DWT_1D(nn.Module):
         band_high = torch.tensor(wavelet.rec_hi)
         length_band = band_low.size()[0]
         self.kernel_size = length_band if self.kernel_size == None else self.kernel_size
-        assert self.kernel_size >= length_band, '参数 kernel_size 的取值不能小于 初始化所用小波的滤波器长度'
+        assert self.kernel_size >= length_band, 'The value of kernel_size cannot be less than the filter length of the wavelet used for initialization'
         a = (self.kernel_size - length_band) // 2
         b = - (self.kernel_size - length_band - a)
         b = None if b == 0 else b
@@ -111,10 +111,10 @@ class IDWT_1D(nn.Module):
                  stride = 2, in_channels = 1, out_channels = None, groups = None,
                  kernel_size = None, trainable = False):
         """
-            参照 DWT_1D 中的说明
-            理论上，使用简单上采样和卷积实现的 IDWT 要比矩阵法计算量小、速度快，
-            然而由于 Pytorch 中没有实现简单上采样，在实现 IDWT 只能用与 [1,0] 做反卷积 Deconvolution 来实现简单上采样
-            这使得该方法比矩阵法实现 IDWT 速度慢非常多。
+            Refer to the description in DWT_1D
+            Theoretically, IDWT using simple upsampling and convolution is less computationally intensive and faster than the matrix method.
+            However, since simple upsampling is not implemented in Pytorch, the IDWT can only be implemented by deconvolution with [1,0] to achieve simple upsampling.
+            This makes the method very much slower than the matrix approach to IDWT.
         """
         super(IDWT_1D, self).__init__()
         self.trainable = trainable
@@ -258,11 +258,11 @@ class IDWT_2D(nn.Module):
                  stride = 2, in_channels = 1, out_channels = None, groups = None,
                  kernel_size = None, trainable = False):
         """
-            参照 DWT_1D 中的说明
-            理论上，使用简单上采样和卷积实现的 IDWT 要比矩阵法计算量小、速度快，
-            然而由于 Pytorch 中没有实现简单上采样，在实现 IDWT 只能用与 [[1,0],[0,0]] 做反卷积 Deconvolution 来实现简单上采样
-            这使得该方法比矩阵法实现 IDWT 速度慢非常多。
-            目前，在论文 https://arxiv.org/abs/2005.14461 中，构建 WaveSNet 事实上仍使用 DWT/IDWT 的矩阵法实现
+            Refer to the description in DWT_1D
+            Theoretically, IDWT using simple upsampling and convolution is less computationally intensive and faster than the matrix method.
+            However, since simple upsampling is not implemented in Pytorch, the IDWT can only be implemented by deconvolution with [[1,0],[0,0]] to achieve simple upsampling.
+            This makes the method very much slower than the matrix approach to IDWT.
+            Currently, in the paper https://arxiv.org/abs/2005.14461, the construction of WaveSNet is in fact still implemented using the matrix method of DWT/IDWT
         """
         super(IDWT_2D, self).__init__()
         self.trainable = trainable
@@ -449,10 +449,10 @@ class IDWT_3D(nn.Module):
                  stride = 2, in_channels = 1, out_channels = None, groups=None,
                  kernel_size = None, trainable=False):
         """
-            参照 DWT_1D 中的说明
-            理论上，使用简单上采样和卷积实现的 IDWT 要比矩阵法计算量小、速度快，
-            然而由于 Pytorch 中没有实现简单上采样，在实现 IDWT 只能用与 [[[1,0],[0,0]], [[0,0],[0,0]]] 做反卷积 Deconvolution 来实现简单上采样
-            这使得该方法比矩阵法实现 IDWT 速度慢非常多。
+            Refer to the description in DWT_1D
+            Theoretically, IDWT using simple upsampling and convolution is less computationally intensive and faster than the matrix method.
+            However, since simple upsampling is not implemented in Pytorch, the IDWT can only be implemented by deconvolution with [[1,0],[0,0]], [[0,0],[0,0]] to achieve simple upsampling.
+            This makes the method very much slower than the matrix approach to IDWT.
         """
         super(IDWT_3D, self).__init__()
         self.trainable = trainable

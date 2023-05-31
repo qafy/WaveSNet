@@ -2,3 +2,4 @@ VOCdevkit
 **/__pycache__
 weight
 info
+.DS_Store

@@ -5,8 +5,8 @@
 # https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.
 
 """
-自定义pytorch函数，实现一维、二维、三维张量的DWT和IDWT，未考虑边界延拓
-只有当图像行列数都是偶数，且重构滤波器组低频分量长度为2时，才能精确重构，否则在边界处有误差。
+Custom pytorch function to implement DWT and IDWT for 1D, 2D and 3D tensor without considering boundary extensions
+Accurate reconstruction is only possible when the number of image ranks are all even and the length of the low frequency component of the reconstruction filter set is 2. Otherwise, there is an error at the boundary.
 """
 import torch
 from torch.autograd import Function

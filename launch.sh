@@ -5,5 +5,4 @@ python3 train.py --net wdeeplabv3p \
                  --backbone resnet101 \
                  --dataset pascal \
                  --epochs 1000 \
-                 --no_cuda \
                  --workers 0
