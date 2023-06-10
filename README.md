@@ -10,4 +10,5 @@
 - evaluation of model possible in utils/evaluate.py to get mIOU (only deeplabv3p supported)
 - multiple data loader not working 
 - Get VOCDevKit from https://www.kaggle.com/datasets/lyuxinshuai/vocdevkit
+- Get Med Dataset from here https://www.synapse.org/#!Synapse:syn3193805/wiki/89480
 
