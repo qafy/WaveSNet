@@ -93,7 +93,7 @@ class Trainer(object):
         self.best_pred = 0.0
         if args.resume is not None:
             if args.dataset in ['pascal', 'cityscapes']:
-                #self.load_pretrained_model()
+                self.load_pretrained_model()
             #elif args.dataset == 'cityscapes':
                 self.load_pretrained_model_cityscape()
 
@@ -373,7 +373,9 @@ def main():
                         help='evaluuation interval (default: 1)')
     parser.add_argument('--no_val', action='store_true', default=False,
                         help='skip validation during training')
-
+    parser.add_argument('--weight_root', type=str, default=None,
+                        help='set the weight root folder path')
+    
     args = parser.parse_args()  #All command line parameters will not take effect until this command is executed
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     if args.cuda:
@@ -433,7 +435,8 @@ def main():
     if args.checkname is None:
         args.checkname = args.net + '_' + str(args.backbone) + '_' + args.wn
     args.info_file = os.path.join('.', 'info', args.dataset, args.net, args.checkname + '_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S.info'))
-    args.weight_root = os.path.join('.', 'weight', args.dataset, args.net, args.checkname + '_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    if args.weight_root is None:
+        args.weight_root = os.path.join('.', 'weight', args.dataset, args.net, args.checkname + '_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     my_mkdir(args.info_file, mode = 'file')
     my_mkdir(args.weight_root, mode = 'path')
     args.printer = Printer(args.info_file)
