@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "polyaxon-template"
+version = "0.1.0"
+description = ""
+authors = ["lzirus <ge93tew@tum.de>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+polyaxon-client = "0.6.1"
+torch = "^1.12.1"
+tensorboard = "^2.10.1"
+argparse = "^1.4.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+black = "^22.6.0"
+prospector = {extras = ["with_mypy", "with_bandit"], version = "^1.7.7"}
+pylint = "^2.14.4"
+mypy = "^0.961"
+bandit = "^1.7.4"
+pydocstyle = "^6.1.1"
+pytest-cov = "^3.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
