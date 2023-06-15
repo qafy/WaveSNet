@@ -451,6 +451,7 @@ def main():
     trainer.validation(epoch = trainer.args.start_epoch)
     for epoch in range(trainer.args.start_epoch, trainer.args.epochs):
         trainer.training(epoch)
+        trainer.writer.flush()
         if not trainer.args.no_val and (epoch % args.eval_interval == (args.eval_interval - 1) or epoch >= (trainer.args.epochs - 10)):
             trainer.validation(epoch)
 
