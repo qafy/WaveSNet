@@ -18,6 +18,7 @@ from utils.lr_scheduler import LR_Scheduler
 from utils.saver import Saver
 from utils.metrics import Evaluator
 from utils.printer import Printer
+from utils.summaries import TensorboardSummary
 
 class Trainer(object):
     def __init__(self, args):
@@ -27,7 +28,8 @@ class Trainer(object):
         self.saver = Saver(args)
         self.saver.save_experiment_config()
         # Define Tensorboard Summary
-        #self.summary = TensorboardSummary(self.saver.experiment_dir)
+        self.summary = TensorboardSummary(self.saver.experiment_dir)
+        self.writer = self.summary.create_summary()
         self.printer = args.printer
         
         # Define Dataloader
@@ -211,6 +213,7 @@ class Trainer(object):
             self.optimizer.zero_grad()
             output = self.model(image)
             loss = self.criterion(output, target)
+            self.writer.add_scalar("Loss/Epoch", loss, epoch)
             loss.backward()
             self.optimizer.step()
             train_loss += loss.item()
@@ -451,7 +454,7 @@ def main():
         if not trainer.args.no_val and (epoch % args.eval_interval == (args.eval_interval - 1) or epoch >= (trainer.args.epochs - 10)):
             trainer.validation(epoch)
 
-    #trainer.writer.close()
+    trainer.writer.close()
 
 if __name__ == "__main__":
    main()

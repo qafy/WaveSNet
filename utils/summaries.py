@@ -1,7 +1,9 @@
 import os
 import torch
 from torchvision.utils import make_grid
-from tensorboardX import SummaryWriter
+
+#from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 from dataloaders.utils import decode_seg_map_sequence
 
 class TensorboardSummary(object):
