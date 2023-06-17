@@ -1,11 +1,17 @@
 from __future__ import print_function, division
+
+import sys
+sys.path.append(r"C:\Users\m\Desktop\WaveSnet")
+
 import os
 from PIL import Image
 import numpy as np
 from torch.utils.data import Dataset
-from mypath import Path
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
+from mypath import Path
+
+
 
 class VOCSegmentation(Dataset):
     """
@@ -120,6 +126,7 @@ if __name__ == '__main__':
     for ii, sample in enumerate(dataloader):
         for jj in range(sample["image"].size()[0]):
             img = sample['image'].numpy()
+            print(img.shape)
             gt = sample['label'].numpy()
             tmp = np.array(gt[jj]).astype(np.uint8)
             segmap = decode_segmap(tmp, dataset='pascal')
