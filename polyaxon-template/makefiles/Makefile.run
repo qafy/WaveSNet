@@ -1,0 +1,8 @@
+.PHONY: run/run
+run/run: venv
+	python3 -m package.main --batch-size=4 \
+                         --test-batch-size=4 \
+                         --epochs=5 \
+                         --lr=0.001 \
+                         --momentum=0.9 \
+                         --log-interval=100
