@@ -3,3 +3,4 @@ VOCdevkit*
 weight
 info
 .DS_Store
+monai_dataset*

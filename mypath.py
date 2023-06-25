@@ -7,6 +7,10 @@ class Path(object):
             cur_file = os.path.abspath(__file__)
             dir_file = os.path.dirname(cur_file)
             return os.path.join(dir_file, 'VOCdevkit')  # folder that contains VOCdevkit/.
+        elif dataset == 'med':
+            cur_file = os.path.abspath(__file__)
+            dir_file = os.path.dirname(cur_file)
+            return os.path.join(dir_file, 'monai_dataset')
         elif dataset == 'sbd':
             return '/path/to/datasets/benchmark_RELEASE'  # folder that contains dataset/.
         elif dataset == 'cityscapes':

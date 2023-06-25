@@ -27,7 +27,7 @@ from monai.data import CacheDataset, load_decathlon_datalist
 
 # add the parent directory to the system path
 import sys
-sys.path.append(r"C:\Users\m\Desktop\WaveSnet")
+sys.path.append(r"/Users/moritzbeckel/Desktop/WaveSNet/")
 from mypath import Path
 
 class MedDataset(CacheDataset):
@@ -36,7 +36,6 @@ class MedDataset(CacheDataset):
     """
 
     NUM_CLASSES = 14
-    JSON_PATH = "dataset.json"
 
     def __init__(
         self,
@@ -49,6 +48,7 @@ class MedDataset(CacheDataset):
         :param split: train/val
         :param transform: transform to apply
         """
+        self.split = split
         self.base_dir = base_dir
         self.args = args
         self.json_data = self.generate_json()
@@ -69,20 +69,20 @@ class MedDataset(CacheDataset):
             "lad",
         ]
 
-        datasets = os.path.join(self.base_dir, self.JSON_PATH)
         transform = None
         datalist = None
 
-        if split == "train":
-            datalist = load_decathlon_datalist(datasets, True, "training")
+        if self.split == "train":
+            datalist = self.json_data["training"]
+            print(datalist)
             transform = self.TRAIN_TRANSFORMS
     
-        elif split == "val":
-            datalist = load_decathlon_datalist(datasets, True, "validation")
+        elif self.split == "val":
+            datalist = self.json_data["validation"]
             transform = self.VAL_TRANSFORMS
      
-        elif split == "test":
-            datalist = load_decathlon_datalist(datasets, True, "testing")
+        elif self.split == "test":
+            datalist = self.json_data["testing"]
             transform = self.VAL_TRANSFORMS
         else:
             raise NotImplementedError("split has to be train | val | test")
@@ -139,10 +139,7 @@ class MedDataset(CacheDataset):
         for i, label in enumerate(labels[num_training:validation_off]):
             fit_label[i]["label"] = label
         data["validation"] = fit_label
-
-        #print(json.dumps(data, indent=1))
-        with open(os.path.join(working_dir, self.JSON_PATH), 'w', encoding='utf8') as f:
-            json.dump(data, f, indent=1)
+        
         return data
 
     TRAIN_TRANSFORMS = Compose(
@@ -237,6 +234,51 @@ class MedDataset(CacheDataset):
         ]
     }
     """
+
+
+import os
+import numpy as np
+import nibabel as nib
+from torch.utils.data import Dataset
+
+class MedDataset_2D(Dataset):
+    def __init__(self, nifti_files, axis=2):
+        """
+        Args:
+            nifti_files (list): List of file paths to NIfTI files.
+            axis (int): The axis along which to extract 2D slices. Default is 2 (axial).
+        """
+        self.nifti_files = nifti_files
+        self.axis = axis
+        self.index_mapping = []
+        
+        # Calculate the total number of 2D slices and map them to respective NIfTI files
+        total_slices = 0
+        for nifti_file in nifti_files:
+            img = nib.load(nifti_file)
+            num_slices = img.shape[axis]
+            for slice_idx in range(num_slices):
+                self.index_mapping.append((nifti_file, slice_idx))
+    
+    def __len__(self):
+        return len(self.index_mapping)
+    
+    def __getitem__(self, idx):
+        nifti_file, slice_idx = self.index_mapping[idx] 
+        img = nib.load(nifti_file).get_fdata()
+        if self.axis == 0:
+            return img[slice_idx, :, :]
+        elif self.axis == 1:
+            return img[:, slice_idx, :]
+        else:
+            return img[:, :, slice_idx]
+
+# # Example usage:
+# nifti_files = ['/path/to/nifti1.nii', '/path/to/nifti2.nii']
+# dataset = NiftiTo2DSlicesDataset(nifti_files, axis=2)
+
+# # Get the first 2D slice
+# first_slice = dataset[0]
 
 if __name__ == "__main__":
     import numpy as np
